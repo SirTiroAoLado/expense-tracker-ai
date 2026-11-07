@@ -1,6 +1,6 @@
 "use client";
 
-import { Download, Plus, Trash2 } from "lucide-react";
+import { Plus, Share2, Trash2 } from "lucide-react";
 import { useDeferredValue, useEffect, useMemo, useState } from "react";
 import { ExpenseList } from "@/components/ExpenseList";
 import { DEFAULT_FILTERS, FilterBar } from "@/components/FilterBar";
@@ -8,10 +8,10 @@ import { Modal } from "@/components/Modal";
 import { EmptyState, Skeleton } from "@/components/States";
 import { useExpenseDialog } from "@/hooks/useExpenseDialog";
 import { useExpenses } from "@/hooks/useExpenses";
+import { useExportFlow } from "@/hooks/useExportFlow";
 import { useToast } from "@/hooks/useToast";
 import { filterExpenses, sortExpenses, sum } from "@/lib/analytics";
-import { downloadCSV } from "@/lib/csv";
-import { formatCurrency, todayISO } from "@/lib/format";
+import { formatCurrency } from "@/lib/format";
 import type { ExpenseFilters, SortKey } from "@/lib/types";
 
 const PAGE_SIZE = 50;
@@ -20,6 +20,7 @@ export default function ExpensesPage() {
   const { expenses, isLoading, currency, clearAll } = useExpenses();
   const { openCreate } = useExpenseDialog();
   const { toast } = useToast();
+  const { openFlow } = useExportFlow();
 
   const [filters, setFilters] = useState<ExpenseFilters>(DEFAULT_FILTERS);
   const [sort, setSort] = useState<SortKey>("date-desc");
@@ -35,19 +36,6 @@ export default function ExpensesPage() {
 
   useEffect(() => setVisible(PAGE_SIZE), [filters, sort]);
 
-  const handleExport = () => {
-    if (filtered.length === 0) {
-      toast("Nothing to export with the current filters", { kind: "error" });
-      return;
-    }
-    try {
-      downloadCSV(filtered, `expenses-${todayISO()}.csv`);
-      toast(`Exported ${filtered.length} expense${filtered.length === 1 ? "" : "s"} to CSV`);
-    } catch {
-      toast("Export failed — please try again", { kind: "error" });
-    }
-  };
-
   return (
     <div className="space-y-6">
       <div className="flex flex-wrap items-end justify-between gap-4">
@@ -56,9 +44,9 @@ export default function ExpensesPage() {
           <p className="mt-1 text-sm text-slate-500">Search, filter, edit and export your expenses.</p>
         </div>
         <div className="flex flex-wrap gap-2">
-          <button onClick={handleExport} className="btn-secondary" disabled={isLoading || expenses.length === 0}>
-            <Download className="h-4 w-4" aria-hidden />
-            Export CSV
+          <button onClick={() => openFlow()} className="btn-secondary" disabled={isLoading || expenses.length === 0}>
+            <Share2 className="h-4 w-4" aria-hidden />
+            Share & export
           </button>
           <button onClick={openCreate} className="btn-primary">
             <Plus className="h-4 w-4" aria-hidden />

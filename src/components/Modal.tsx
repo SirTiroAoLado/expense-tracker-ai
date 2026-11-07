@@ -8,7 +8,7 @@ interface ModalProps {
   description?: string;
   onClose: () => void;
   children: ReactNode;
-  size?: "sm" | "md";
+  size?: "sm" | "md" | "lg";
 }
 
 export function Modal({ title, description, onClose, children, size = "md" }: ModalProps) {
@@ -62,7 +62,7 @@ export function Modal({ title, description, onClose, children, size = "md" }: Mo
         aria-modal="true"
         aria-labelledby="modal-title"
         className={`relative w-full animate-slide-up rounded-t-2xl bg-white shadow-xl ring-1 ring-slate-900/5 sm:rounded-2xl ${
-          size === "sm" ? "sm:max-w-sm" : "sm:max-w-lg"
+          size === "sm" ? "sm:max-w-sm" : size === "lg" ? "sm:max-w-3xl" : "sm:max-w-lg"
         }`}
       >
         <div className="flex items-start justify-between gap-4 border-b border-slate-100 px-5 py-4 sm:px-6">
