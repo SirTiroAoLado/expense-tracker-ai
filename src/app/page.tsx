@@ -1,6 +1,6 @@
 "use client";
 
-import { ArrowRight, Plus } from "lucide-react";
+import { ArrowRight, Download, Plus } from "lucide-react";
 import Link from "next/link";
 import { useMemo } from "react";
 import { CategoryBreakdown } from "@/components/charts/CategoryBreakdown";
@@ -11,7 +11,8 @@ import { SummaryCards } from "@/components/SummaryCards";
 import { useExpenseDialog } from "@/hooks/useExpenseDialog";
 import { useExpenses } from "@/hooks/useExpenses";
 import { currentMonthKey, sortExpenses } from "@/lib/analytics";
-import { formatMonthKey, monthKey } from "@/lib/format";
+import { downloadCSV } from "@/lib/csv";
+import { formatMonthKey, monthKey, todayISO } from "@/lib/format";
 
 export default function DashboardPage() {
   const { expenses, isLoading, currency } = useExpenses();
@@ -30,10 +31,20 @@ export default function DashboardPage() {
           <h1 className="text-2xl font-semibold tracking-tight text-slate-900">Dashboard</h1>
           <p className="mt-1 text-sm text-slate-500">An overview of where your money goes.</p>
         </div>
-        <button onClick={openCreate} className="btn-primary sm:hidden">
-          <Plus className="h-4 w-4" aria-hidden />
-          Add expense
-        </button>
+        <div className="flex gap-2">
+          <button
+            onClick={() => downloadCSV(sortExpenses(expenses, "date-desc"), `expenses-${todayISO()}.csv`)}
+            disabled={expenses.length === 0}
+            className="btn-secondary"
+          >
+            <Download className="h-4 w-4" aria-hidden />
+            Export Data
+          </button>
+          <button onClick={openCreate} className="btn-primary sm:hidden">
+            <Plus className="h-4 w-4" aria-hidden />
+            Add expense
+          </button>
+        </div>
       </div>
 
       {expenses.length === 0 ? (
