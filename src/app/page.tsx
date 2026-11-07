@@ -1,6 +1,6 @@
 "use client";
 
-import { ArrowRight, Plus } from "lucide-react";
+import { ArrowRight, FileDown, Plus } from "lucide-react";
 import Link from "next/link";
 import { useMemo } from "react";
 import { CategoryBreakdown } from "@/components/charts/CategoryBreakdown";
@@ -10,12 +10,14 @@ import { EmptyState, PageSkeleton } from "@/components/States";
 import { SummaryCards } from "@/components/SummaryCards";
 import { useExpenseDialog } from "@/hooks/useExpenseDialog";
 import { useExpenses } from "@/hooks/useExpenses";
+import { useExportDrawer } from "@/hooks/useExportDrawer";
 import { currentMonthKey, sortExpenses } from "@/lib/analytics";
 import { formatMonthKey, monthKey } from "@/lib/format";
 
 export default function DashboardPage() {
   const { expenses, isLoading, currency } = useExpenses();
   const { openCreate } = useExpenseDialog();
+  const { openExport } = useExportDrawer();
 
   const recent = useMemo(() => sortExpenses(expenses, "date-desc").slice(0, 6), [expenses]);
   const cur = currentMonthKey();
@@ -30,10 +32,16 @@ export default function DashboardPage() {
           <h1 className="text-2xl font-semibold tracking-tight text-slate-900">Dashboard</h1>
           <p className="mt-1 text-sm text-slate-500">An overview of where your money goes.</p>
         </div>
-        <button onClick={openCreate} className="btn-primary sm:hidden">
-          <Plus className="h-4 w-4" aria-hidden />
-          Add expense
-        </button>
+        <div className="flex gap-2">
+          <button onClick={() => openExport()} disabled={expenses.length === 0} className="btn-secondary">
+            <FileDown className="h-4 w-4" aria-hidden />
+            Export data
+          </button>
+          <button onClick={openCreate} className="btn-primary sm:hidden">
+            <Plus className="h-4 w-4" aria-hidden />
+            Add expense
+          </button>
+        </div>
       </div>
 
       {expenses.length === 0 ? (

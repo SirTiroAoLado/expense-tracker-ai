@@ -1,6 +1,6 @@
 "use client";
 
-import { Download, Plus, Trash2 } from "lucide-react";
+import { FileDown, Plus, Trash2 } from "lucide-react";
 import { useDeferredValue, useEffect, useMemo, useState } from "react";
 import { ExpenseList } from "@/components/ExpenseList";
 import { DEFAULT_FILTERS, FilterBar } from "@/components/FilterBar";
@@ -8,11 +8,11 @@ import { Modal } from "@/components/Modal";
 import { EmptyState, Skeleton } from "@/components/States";
 import { useExpenseDialog } from "@/hooks/useExpenseDialog";
 import { useExpenses } from "@/hooks/useExpenses";
+import { useExportDrawer } from "@/hooks/useExportDrawer";
 import { useToast } from "@/hooks/useToast";
 import { filterExpenses, sortExpenses, sum } from "@/lib/analytics";
-import { downloadCSV } from "@/lib/csv";
-import { formatCurrency, todayISO } from "@/lib/format";
-import type { ExpenseFilters, SortKey } from "@/lib/types";
+import { formatCurrency } from "@/lib/format";
+import { CATEGORIES, type ExpenseFilters, type SortKey } from "@/lib/types";
 
 const PAGE_SIZE = 50;
 
@@ -20,6 +20,7 @@ export default function ExpensesPage() {
   const { expenses, isLoading, currency, clearAll } = useExpenses();
   const { openCreate } = useExpenseDialog();
   const { toast } = useToast();
+  const { openExport } = useExportDrawer();
 
   const [filters, setFilters] = useState<ExpenseFilters>(DEFAULT_FILTERS);
   const [sort, setSort] = useState<SortKey>("date-desc");
@@ -35,18 +36,13 @@ export default function ExpensesPage() {
 
   useEffect(() => setVisible(PAGE_SIZE), [filters, sort]);
 
-  const handleExport = () => {
-    if (filtered.length === 0) {
-      toast("Nothing to export with the current filters", { kind: "error" });
-      return;
-    }
-    try {
-      downloadCSV(filtered, `expenses-${todayISO()}.csv`);
-      toast(`Exported ${filtered.length} expense${filtered.length === 1 ? "" : "s"} to CSV`);
-    } catch {
-      toast("Export failed — please try again", { kind: "error" });
-    }
-  };
+  // Carry the page's date range and category filter into the export drawer.
+  const handleExport = () =>
+    openExport({
+      from: filters.from,
+      to: filters.to,
+      categories: filters.category === "All" ? [...CATEGORIES] : [filters.category],
+    });
 
   return (
     <div className="space-y-6">
@@ -57,8 +53,8 @@ export default function ExpensesPage() {
         </div>
         <div className="flex flex-wrap gap-2">
           <button onClick={handleExport} className="btn-secondary" disabled={isLoading || expenses.length === 0}>
-            <Download className="h-4 w-4" aria-hidden />
-            Export CSV
+            <FileDown className="h-4 w-4" aria-hidden />
+            Export…
           </button>
           <button onClick={openCreate} className="btn-primary">
             <Plus className="h-4 w-4" aria-hidden />
