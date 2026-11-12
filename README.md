@@ -39,10 +39,10 @@ Other scripts: `npm run lint`, `npm run typecheck`.
 ```
 docs/             project write-ups (e.g. code-analysis.md)
 src/
-  app/            layout, providers, dashboard (/) and expenses (/expenses) pages
-  components/     form, modal, list, filter bar, summary cards, charts/
-  hooks/          useExpenses (data + persistence), useToast, useExpenseDialog
-  lib/            types, analytics (filter/sort/aggregate), csv, storage, formatting
+  app/            layout, providers, dashboard (/), expenses (/expenses), Share & Export hub (/exports), share-link viewer (/share)
+  components/     form, modal, list, filter bar, summary cards, charts/, cloud/ (export flow, hub tabs, sync status)
+  hooks/          useExpenses (data + persistence), useCloud (integrations, jobs, schedules, history), useExportFlow, useToast, useExpenseDialog
+  lib/            types, analytics (filter/sort/aggregate), storage, formatting, cloud/ (templates, share links, schedules, services, insights)
 ```
 
 ## Export feature variants (branches)
