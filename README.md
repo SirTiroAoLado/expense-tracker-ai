@@ -45,16 +45,16 @@ src/
   lib/            types, analytics (filter/sort/aggregate), storage, formatting, cloud/ (templates, share links, schedules, services, insights)
 ```
 
-## Export feature variants (branches)
+## Export feature variants
 
-As a course exercise, the data-export feature was built three different ways, each on its own branch off `master`:
+As a course exercise, the data-export feature was built three different ways. **v3 was chosen and merged into `master`.** All three are kept as git tags:
 
-| Branch | Approach | Extra dependencies |
-| --- | --- | --- |
-| `feature-data-export-v1` | One-click **CSV** download from the dashboard | none |
-| `feature-data-export-v2` | Export **drawer** with CSV, JSON and PDF, filters, column picker and live preview | `jspdf`, `jspdf-autotable` |
-| `feature-data-export-v3` | **Share & Export hub** (`/exports`): templates, encrypted share links with QR codes, simulated cloud integrations and scheduled exports | `qrcode` |
+| Tag | Approach | Extra dependencies | Status |
+| --- | --- | --- | --- |
+| `export-v1` | One-click **CSV** download from the dashboard | none | alternative |
+| `export-v2` | Export **drawer** with CSV, JSON and PDF, filters, column picker and live preview | `jspdf`, `jspdf-autotable` | alternative |
+| `export-v3` | **Share & Export hub** (`/exports`): templates, encrypted share links with QR codes, simulated cloud integrations and scheduled exports | `qrcode` | **in `master`** |
 
-To try one: `git switch feature-data-export-v2`, then `npm install` (v2 and v3 add packages) and `npm run dev`.
+To try an alternative: `git switch --detach export-v2`, then `npm install` and `npm run dev`. Go back with `git switch master` and `npm install`.
 
 A side-by-side comparison (architecture, security, performance, maintainability) is in [`docs/code-analysis.md`](docs/code-analysis.md).

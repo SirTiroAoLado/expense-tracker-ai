@@ -40,7 +40,9 @@ There is no test suite yet. Before you consider a change done, run `npm run type
 - CSV output (`lib/cloud/templates.ts`) must stay formula-injection safe (text cells that start with `=`, `+`, `-`, `@`, tab or CR get a `'` prefix).
 - Icons come from `lucide-react`. Prefer that over adding new UI dependencies.
 
-## Branches
+## Branches and tags
 
-- `master`: the baseline app.
-- `feature-data-export-v1/-v2/-v3`: three alternative implementations of data export, compared in `docs/code-analysis.md`. v2 and v3 add npm dependencies, so run `npm install` after switching to them.
+- `master` is the only branch. It contains the app with the v3 Share & Export hub.
+- The tags `export-v1`, `export-v2` and `export-v3` preserve the three export implementations, which are compared in `docs/code-analysis.md`. v1 and v2 are alternatives that were not adopted, so don't port code from them unless asked.
+- Known open issues in the adopted v3 code are listed in `docs/code-analysis.md` §7: H-1 (the `/share` viewer doesn't validate rows), H-2 (no cross-tab coordination in `useCloud`), M-2, M-3, L-5, L-6 and L-7.
+- After switching to another tag and building, `npm run typecheck` can fail on stale `.next/types`. Run `npm run build`, or delete `.next`.
