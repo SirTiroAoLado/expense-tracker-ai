@@ -1,8 +1,9 @@
 "use client";
 
-import { LayoutDashboard, ListOrdered, Plus, Wallet } from "lucide-react";
+import { LayoutDashboard, ListOrdered, Plus, Share2, Wallet } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { SyncStatus } from "@/components/cloud/SyncStatus";
 import { useExpenseDialog } from "@/hooks/useExpenseDialog";
 import { useExpenses } from "@/hooks/useExpenses";
 import { CURRENCIES, type CurrencyCode } from "@/lib/types";
@@ -10,12 +11,29 @@ import { CURRENCIES, type CurrencyCode } from "@/lib/types";
 const LINKS = [
   { href: "/", label: "Dashboard", icon: LayoutDashboard },
   { href: "/expenses", label: "Expenses", icon: ListOrdered },
+  { href: "/exports", label: "Share & Export", icon: Share2 },
 ];
 
 export function Navbar() {
   const pathname = usePathname();
   const { openCreate } = useExpenseDialog();
   const { currency, setCurrency } = useExpenses();
+
+  // Shared-report viewers get a minimal, read-only header.
+  if (pathname.startsWith("/share")) {
+    return (
+      <header className="border-b border-slate-200/80 bg-white">
+        <div className="mx-auto flex h-14 max-w-6xl items-center px-4 sm:px-6">
+          <Link href="/" className="flex items-center gap-2.5 font-semibold text-slate-900">
+            <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-brand-600 text-white">
+              <Wallet className="h-3.5 w-3.5" aria-hidden />
+            </span>
+            Spendwise
+          </Link>
+        </div>
+      </header>
+    );
+  }
 
   return (
     <>
@@ -48,6 +66,7 @@ export function Navbar() {
           </nav>
 
           <div className="ml-auto flex items-center gap-2">
+            <SyncStatus />
             <label htmlFor="currency" className="sr-only">
               Currency
             </label>
@@ -77,8 +96,8 @@ export function Navbar() {
         aria-label="Main mobile"
         className="fixed inset-x-0 bottom-0 z-40 border-t border-slate-200 bg-white/95 pb-[env(safe-area-inset-bottom)] backdrop-blur md:hidden"
       >
-        <div className="grid grid-cols-3">
-          {LINKS.slice(0, 1).map(({ href, label, icon: Icon }) => (
+        <div className="grid grid-cols-4">
+          {LINKS.slice(0, 2).map(({ href, label, icon: Icon }) => (
             <MobileLink key={href} href={href} label={label} Icon={Icon} active={pathname === href} />
           ))}
           <div className="flex items-center justify-center">
@@ -90,8 +109,8 @@ export function Navbar() {
               <Plus className="h-6 w-6" />
             </button>
           </div>
-          {LINKS.slice(1).map(({ href, label, icon: Icon }) => (
-            <MobileLink key={href} href={href} label={label} Icon={Icon} active={pathname === href} />
+          {LINKS.slice(2).map(({ href, icon: Icon }) => (
+            <MobileLink key={href} href={href} label="Share" Icon={Icon} active={pathname === href} />
           ))}
         </div>
       </nav>
