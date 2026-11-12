@@ -14,9 +14,10 @@ npm run dev        # http://localhost:3000
 npm run build      # production build (also lints and type-checks)
 npm run lint       # next lint (eslint: next/core-web-vitals)
 npm run typecheck  # tsc --noEmit
+npm test           # vitest run (unit tests: src/**/*.test.ts, Node environment)
 ```
 
-There is no test suite yet. Before you consider a change done, run `npm run typecheck`, `npm run lint` and `npm run build`.
+Unit tests cover the pure logic in `src/lib` (currently `lib/cloud/share.ts` and `lib/cloud/leader.ts`). Put new tests next to the file as `*.test.ts`. Before you consider a change done, run `npm test`, `npm run typecheck`, `npm run lint` and `npm run build`.
 
 ## Architecture
 
@@ -44,5 +45,7 @@ There is no test suite yet. Before you consider a change done, run `npm run type
 
 - `master` is the only branch. It contains the app with the v3 Share & Export hub.
 - The tags `export-v1`, `export-v2` and `export-v3` preserve the three export implementations, which are compared in `docs/code-analysis.md`. v1 and v2 are alternatives that were not adopted, so don't port code from them unless asked.
-- Known open issues in the adopted v3 code are listed in `docs/code-analysis.md` §7: H-1 (the `/share` viewer doesn't validate rows), H-2 (no cross-tab coordination in `useCloud`), M-2, M-3, L-5, L-6 and L-7.
+- Known open issues in the adopted v3 code are listed in `docs/code-analysis.md` §7: M-2, M-3, L-5, L-6 and L-7. H-1 and H-2 are fixed:
+  - **H-1:** share links are untrusted input. Everything decoded goes through `parseSnapshot()` in `lib/cloud/share.ts`, and `/share` has an `error.tsx` boundary. If you add a field to `SharedSnapshot`, validate it there.
+  - **H-2:** only the tab holding the `expense-tracker:scheduler` Web Lock runs schedules (`lib/cloud/leader.ts`), and `useCloud` syncs its state across tabs through the `storage` event.
 - After switching to another tag and building, `npm run typecheck` can fail on stale `.next/types`. Run `npm run build`, or delete `.next`.

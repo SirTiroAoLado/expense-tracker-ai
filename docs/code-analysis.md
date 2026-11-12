@@ -4,7 +4,7 @@
 **Branches analysed:** `feature-data-export-v1` (`5679a2e`), `feature-data-export-v2` (`a5de14f`), `feature-data-export-v3` (`1e64c1f`). All three branch from `master` (`e7267f3`).
 **Date:** 2026-11-07
 
-> **Decision (2026-11-12):** v3 was adopted and merged into `master`. The three branches have been replaced by the tags `export-v1`, `export-v2` and `export-v3`, and the commit hashes below are still reachable through them. The rest of this document is unchanged from the original analysis.
+> **Decision (2026-11-12):** v3 was adopted and merged into `master`. The three branches have been replaced by the tags `export-v1`, `export-v2` and `export-v3`, and the commit hashes below are still reachable through them. **H-1 and H-2 (§7) have since been fixed in `master`**, with unit tests. The rest of this document is unchanged from the original analysis.
 
 > **Disclosure:** all three branches were written by the same author (Claude), on request, as deliberately different design exercises. Read this as a structured self-review. Every finding below was checked against the code on each branch (see *Method*), but an independent reviewer may weigh things differently.
 

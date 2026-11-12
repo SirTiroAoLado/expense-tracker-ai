@@ -15,7 +15,7 @@ Production build:
 npm run build && npm start
 ```
 
-Other scripts: `npm run lint`, `npm run typecheck`.
+Other scripts: `npm test` (unit tests), `npm run lint`, `npm run typecheck`.
 
 ## Features
 
