@@ -1,6 +1,7 @@
 "use client";
 
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
+import { electLeader } from "@/lib/cloud/leader";
 import type { PeriodId } from "@/lib/cloud/period";
 import { computeNextRun, type Schedule } from "@/lib/cloud/schedule";
 import { SERVICES, type DestinationId } from "@/lib/cloud/services";
@@ -10,6 +11,8 @@ import { useExpenses } from "./useExpenses";
 import { useToast } from "./useToast";
 
 const STORAGE_KEY = "expense-tracker:cloud:v1";
+/** Only the tab holding this lock runs scheduled exports (see lib/cloud/leader.ts). */
+const SCHEDULER_LOCK = "expense-tracker:scheduler";
 const MAX_HISTORY = 60;
 
 export interface Connection {
@@ -73,6 +76,23 @@ interface Persisted {
 
 const EMPTY: Persisted = { connections: {}, history: [], schedules: [], shares: [] };
 
+/** Parse stored cloud state, falling back to empty parts for anything malformed. */
+function parsePersisted(raw: string | null): Persisted {
+  if (!raw) return EMPTY;
+  try {
+    const p = JSON.parse(raw) as Partial<Persisted> | null;
+    if (!p || typeof p !== "object") return EMPTY;
+    return {
+      connections: p.connections && typeof p.connections === "object" && !Array.isArray(p.connections) ? p.connections : {},
+      history: Array.isArray(p.history) ? p.history : [],
+      schedules: Array.isArray(p.schedules) ? p.schedules : [],
+      shares: Array.isArray(p.shares) ? p.shares : [],
+    };
+  } catch {
+    return EMPTY;
+  }
+}
+
 export interface StartJobInput {
   templateId: TemplateId;
   periodId: PeriodId;
@@ -123,13 +143,18 @@ export function CloudProvider({ children }: { children: ReactNode }) {
   const dataRef = useRef(data);
   dataRef.current = data;
 
-  /* ---------- persistence ---------- */
+  /* ---------- persistence & cross-tab sync ---------- */
+  // The last JSON written by this tab or received from another one. Skipping a
+  // write that matches it stops two tabs from echoing the same state back and forth.
+  const lastRaw = useRef<string | null>(null);
+
   useEffect(() => {
     try {
       const raw = localStorage.getItem(STORAGE_KEY);
-      if (raw) setData({ ...EMPTY, ...(JSON.parse(raw) as Partial<Persisted>) });
+      lastRaw.current = raw;
+      setData(parsePersisted(raw));
     } catch {
-      /* start fresh */
+      /* storage unavailable: start fresh */
     }
     setOnline(navigator.onLine);
     setReady(true);
@@ -137,12 +162,32 @@ export function CloudProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     if (!ready) return;
+    const raw = JSON.stringify(data);
+    if (raw === lastRaw.current) return;
     try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+      localStorage.setItem(STORAGE_KEY, raw);
+      lastRaw.current = raw;
     } catch {
       /* storage full: non-critical */
     }
   }, [data, ready]);
+
+  // Another tab changed connections, schedules, history or shares: adopt its
+  // state so this tab never overwrites it with a stale copy.
+  useEffect(() => {
+    const onStorage = (e: StorageEvent) => {
+      if (e.key !== STORAGE_KEY && e.key !== null) return; // null = storage cleared
+      const raw = e.key === null ? null : e.newValue;
+      lastRaw.current = raw;
+      setData(parsePersisted(raw));
+    };
+    window.addEventListener("storage", onStorage);
+    return () => window.removeEventListener("storage", onStorage);
+  }, []);
+
+  // Leader election: exactly one open tab runs the scheduler.
+  const [isLeader, setIsLeader] = useState(false);
+  useEffect(() => electLeader(SCHEDULER_LOCK, setIsLeader), []);
 
   useEffect(() => {
     const up = () => setOnline(true);
@@ -383,8 +428,10 @@ export function CloudProvider({ children }: { children: ReactNode }) {
   );
 
   // Scheduler tick: runs due schedules while the app is open (missed runs catch up once on next open).
+  // Only the leader tab ticks, so two open tabs don't both deliver the same scheduled export.
+  // Other tabs see the updated nextRunAt through the storage sync above.
   useEffect(() => {
-    if (!ready || isLoading) return;
+    if (!ready || isLoading || !isLeader) return;
     const tick = () => {
       const now = Date.now();
       for (const s of dataRef.current.schedules) {
@@ -394,7 +441,7 @@ export function CloudProvider({ children }: { children: ReactNode }) {
     tick();
     const t = setInterval(tick, 30_000);
     return () => clearInterval(t);
-  }, [ready, isLoading, runSchedule]);
+  }, [ready, isLoading, isLeader, runSchedule]);
 
   /* ---------- shares ---------- */
   const addShare = useCallback((s: Omit<ShareRecord, "id" | "createdAt">) => {
