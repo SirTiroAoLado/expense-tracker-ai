@@ -30,9 +30,24 @@ Other scripts: `npm run lint`, `npm run typecheck`.
 ## Project structure
 
 ```
+docs/             project write-ups (e.g. code-analysis.md)
 src/
   app/            layout, providers, dashboard (/) and expenses (/expenses) pages
   components/     form, modal, list, filter bar, summary cards, charts/
   hooks/          useExpenses (data + persistence), useToast, useExpenseDialog
   lib/            types, analytics (filter/sort/aggregate), csv, storage, formatting
 ```
+
+## Export feature variants (branches)
+
+As a course exercise, the data-export feature was built three different ways, each on its own branch off `master`:
+
+| Branch | Approach | Extra dependencies |
+| --- | --- | --- |
+| `feature-data-export-v1` | One-click **CSV** download from the dashboard | none |
+| `feature-data-export-v2` | Export **drawer** with CSV, JSON and PDF, filters, column picker and live preview | `jspdf`, `jspdf-autotable` |
+| `feature-data-export-v3` | **Share & Export hub** (`/exports`): templates, encrypted share links with QR codes, simulated cloud integrations and scheduled exports | `qrcode` |
+
+To try one: `git switch feature-data-export-v2`, then `npm install` (v2 and v3 add packages) and `npm run dev`.
+
+A side-by-side comparison (architecture, security, performance, maintainability) is in [`docs/code-analysis.md`](docs/code-analysis.md).
